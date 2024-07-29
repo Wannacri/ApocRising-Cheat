@@ -96,7 +96,7 @@ local SpeedSet = Instance.new("TextBox")
 
 local InfiniteFuel = Instance.new("TextButton")
 
-local vehicleTeleport = Instance.new("TextButton")
+local vehicleTeleport = Instance.new("TextBox")
 -- properties
 
 Chit.Name = "poopfart12"
@@ -585,7 +585,7 @@ end)
 
 ESPButton.Active = true
 ESPButton.BackgroundColor3 = Color3.new(0, 0, 0)
-ESPButton.BorderColor3 = Color3.new(255, 255, 255)
+ESPButton.BorderColor3 = Color3.new(1, 1, 1) -- Corrected color range
 ESPButton.BorderSizePixel = 2
 ESPButton.Name = "ESPButton"
 ESPButton.Position = UDim2.new(0, 155, 0, 145)
@@ -596,81 +596,74 @@ ESPButton.ZIndex = 3
 ESPButton.Font = Enum.Font.Jura
 ESPButton.FontSize = Enum.FontSize.Size28
 ESPButton.Text = "ESP : Off"
-ESPButton.TextColor3 = Color3.new(255, 0, 0)
+ESPButton.TextColor3 = Color3.new(1, 0, 0) -- Corrected color range
 ESPButton.TextStrokeTransparency = 0
 ESPButton.TextScaled = true
 ESPButton.Parent = LocalPage
 
-local esp = false
-local player = game.Players.LocalPlayer
-ESPButton.MouseButton1Down:connect(function()
-	if esp == false then -- forgot esp lol
-esp = true
-ESPButton.Text = "ESP : on"
-for get,nplayer in ipairs(game.Players:GetPlayers()) do
-if nplayer.Name == player.Name then
-else
-local BGUI = Instance.new('BillboardGui', workspace.CurrentCamera)
-BGUI.Name = 'BGui'
-local BGUIFrame = Instance.new('Frame', BGUI)
-BGUIFrame.Name ='BGUIFrame'
-local BGUIName = Instance.new('TextLabel', BGUIFrame)
-BGUIName.Name = 'BGUIName'
-BGUI.AlwaysOnTop = true
-BGUI.Enabled = true
-BGUI.Size = UDim2.new(0,60,0,15)
-BGUI.Adornee = nplayer.Character.Head
-BGUIFrame.BackgroundTransparency = 1
-BGUIFrame.Size = UDim2.new(1,0,1,0)
-BGUIName.Size = UDim2.new(1,0,1,0)
-BGUIName.BackgroundColor3 = Color3.new(0, 0.666667, 1)
-BGUIName.BackgroundTransparency = 1
-BGUIName.Text = nplayer.Name
-BGUIName.TextColor3 = Color3.new(1, 0, 0)
-BGUIName.TextStrokeColor3 = Color3.new(0, 0, 0)
-BGUIName.TextStrokeTransparency = 0
-BGUIName.Font = "Jura"
-BGUIName.TextScaled = true
-BGUIName.TextWrapped = true
-BGUIName.MouseEnter:connect(function()
-PlayerSelect.Text = game.Players.LocalPlayer.Name
-BGUIName.MouseLeave:connect(function()
-PlayerSelect.Text = ""
-end)
-end)
+local espEnabled = false -- ESP state
+
+-- Function to update ESP for players
+local function updatePlayerESP()
+    local localCharacter = game.Players.LocalPlayer.Character
+    if not localCharacter then return end
+
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+            local distance = (localCharacter.Head.Position - player.Character.Head.Position).Magnitude
+            local billboardGui = player.Character.Head:FindFirstChild("esptags")
+            if not billboardGui and espEnabled then
+                -- Create BillboardGui if it doesn't exist and ESP is enabled
+                billboardGui = Instance.new("BillboardGui")
+                billboardGui.Name = "esptags"
+                billboardGui.Adornee = player.Character.Head
+                billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                billboardGui.AlwaysOnTop = true
+                billboardGui.LightInfluence = 1
+                billboardGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+                billboardGui.Parent = player.Character.Head
+
+                local textLabel = Instance.new("TextLabel")
+                textLabel.Name = "NameLabel"
+                textLabel.Text = player.Name .. "\nDistance: " .. math.floor(distance)
+                textLabel.Size = UDim2.new(1, 0, 1, 0)
+                textLabel.BackgroundTransparency = 1
+                textLabel.TextColor3 = Color3.new(1, 0, 0)
+                textLabel.TextScaled = true
+                textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+                textLabel.TextStrokeTransparency = 0
+                textLabel.Visible = true
+                textLabel.Parent = billboardGui
+            elseif billboardGui and not espEnabled then
+                -- Remove BillboardGui if ESP is disabled
+                billboardGui:Destroy()
+            elseif billboardGui and espEnabled then
+                -- Update the distance text if ESP is enabled
+                billboardGui.NameLabel.Text = player.Name .. "\nDistance: " .. math.floor(distance)
+            end
+        end
+    end
 end
-local nvGUI = Instance.new('ScreenGui', player.PlayerGui)
-nvGUI.Name = "NVG"
-local nvMAIN = Instance.new('TextLabel', nvGUI)
-nvMAIN.Name = "Main"
-nvMAIN.BackgroundTransparency = 1
-for i,v in pairs(game.Players:GetChildren()) do
-if v and v.Character and not (v.Name == '' .. player.Name) then
-for i,v in pairs(v.Character:GetChildren()) do
-if v:IsA('BasePart') then
-local nvBox = Instance.new('SelectionBox', nvMAIN)
-nvBox.Adornee = v
-nvBox.Color = BrickColor.new('Blue')
+
+-- Function to toggle ESP state
+local function toggleESP()
+    espEnabled = not espEnabled
+    if espEnabled then
+        ESPButton.Text = "ESP : On"
+        ESPButton.TextColor3 = Color3.new(0, 1, 0) -- Green text when ESP is on
+    else
+        ESPButton.Text = "ESP : Off"
+        ESPButton.TextColor3 = Color3.new(1, 0, 0) -- Red text when ESP is off
+    end
 end
-end
-end
-end
-end
-elseif esp == true then
-esp = false
-ESPButton.Text = "ESP : off"
-for i,v in ipairs(game.Workspace.CurrentCamera:GetChildren()) do
-if v.Name == 'BGui' then
-v:Destroy()
-end
-end
-for i,v in pairs(player.PlayerGui:GetChildren()) do
-if v.Name == "NVG" and v:IsA('ScreenGui') then
-v:Destroy()
-end
-end
-end
-end)
+
+-- Connect button click to toggle ESP
+ESPButton.MouseButton1Click:Connect(toggleESP)
+
+-- Initial call to update ESP and connect to Heartbeat event
+updatePlayerESP()
+game:GetService("RunService").Heartbeat:Connect(updatePlayerESP)
 
 InfHungThirButton.Active = true
 InfHungThirButton.BackgroundColor3 = Color3.new(0, 0, 0)
@@ -805,7 +798,7 @@ SpeedButton.BackgroundColor3 = Color3.new(0, 0, 0)
 SpeedButton.BorderColor3 = Color3.new(255, 255, 255)
 SpeedButton.BorderSizePixel = 2
 SpeedButton.Name = "SpeedButton"
-SpeedButton.Position = UDim2.new(0, 90, 0, 95)
+SpeedButton.Position = UDim2.new(0, 90, 0, 130)
 SpeedButton.Selectable = true
 SpeedButton.Size = UDim2.new(0, 100, 0, 35)
 SpeedButton.Style = Enum.ButtonStyle.Custom
@@ -833,7 +826,7 @@ CarHeal.BackgroundColor3 = Color3.new(0, 0, 0)
 CarHeal.BorderColor3 = Color3.new(255, 255, 255)
 CarHeal.BorderSizePixel = 2
 CarHeal.Name = "CarHeal"
-CarHeal.Position = UDim2.new(0, 200, 0, 95)
+CarHeal.Position = UDim2.new(0, 200, 0, 130)
 CarHeal.Selectable = true
 CarHeal.Size = UDim2.new(0, 100, 0, 35)
 CarHeal.Style = Enum.ButtonStyle.Custom
@@ -885,7 +878,7 @@ InfiniteFuel.BackgroundColor3 = Color3.new(0, 0, 0)
 InfiniteFuel.BorderColor3 = Color3.new(255, 255, 255)
 InfiniteFuel.BorderSizePixel = 2
 InfiniteFuel.Name = "InfiniteFuel"
-InfiniteFuel.Position = UDim2.new(0, 90, 0, 140)
+InfiniteFuel.Position = UDim2.new(0, 90, 0, 180)
 InfiniteFuel.Selectable = true
 InfiniteFuel.Size = UDim2.new(0, 210, 0, 35)
 InfiniteFuel.Style = Enum.ButtonStyle.Custom
@@ -908,6 +901,23 @@ end
 end
 end
 end)
+
+
+vehicleTeleport.BackgroundColor3 = Color3.new(0, 0, 0)
+vehicleTeleport.BorderColor3 = Color3.new(255, 255, 255)
+vehicleTeleport.BorderSizePixel = 2
+vehicleTeleport.Name = "vehicleTeleport"
+vehicleTeleport.Position = UDim2.new(0, 95, 0, 120)
+vehicleTeleport.Size = UDim2.new(0, 200, 0, 35)
+vehicleTeleport.ZIndex = 2
+vehicleTeleport.Font = Enum.Font.Jura
+vehicleTeleport.FontSize = Enum.FontSize.Size14
+vehicleTeleport.Text = "Enter Vehicle Speed"
+vehicleTeleport.TextColor3 = Color3.new(255, 0, 0)
+vehicleTeleport.TextScaled = true
+vehicleTeleport.TextStrokeTransparency = 0
+vehicleTeleport.TextWrapped = true
+vehicleTeleport.Parent = VehiclePage
 
 --[[]]--
  
