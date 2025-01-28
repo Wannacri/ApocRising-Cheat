@@ -7,4 +7,3 @@ The actual cheat file is apocv1.lua, just paste it into your executor
 this is kind of a joke GUI, so dont take alot of the text around it seriously
 this is one of my first attempts at actually trying to make something like this
 
-have fun and dont be a complete ass
